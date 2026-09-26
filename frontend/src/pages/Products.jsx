@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
@@ -16,10 +17,12 @@ import {
   PlusCircle,
   MinusCircle,
   Boxes,
-  ArrowUpDown
+  ArrowUpDown,
+  Eye
 } from 'lucide-react';
 
 export default function Products() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,29 +34,11 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
 
-  // Product Add/Edit Modal
-  const [productModalOpen, setProductModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    sku: '',
-    barcode: '',
-    description: '',
-    categoryId: '',
-    unitOfMeasure: 'Units',
-    costPrice: '0.00',
-    salesPrice: '0.00',
-    quantityOnHand: '0',
-    reorderPoint: '10'
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   // Quick Stock Adjustment Modal
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [selectedStockProduct, setSelectedStockProduct] = useState(null);
   const [adjustmentAmount, setAdjustmentAmount] = useState(1);
-  const [adjustmentType, setAdjustmentType] = useState('ADD'); // ADD or REMOVE
+  const [adjustmentType, setAdjustmentType] = useState('ADD');
 
   useEffect(() => {
     fetchInitialData();
@@ -75,89 +60,14 @@ export default function Products() {
     }
   };
 
-  const handleSearch = async (query) => {
+  const handleSearchAndFilter = async (query = searchQuery, catId = selectedCategory) => {
     setSearchQuery(query);
+    setSelectedCategory(catId);
     try {
-      const data = await productService.getAll(query);
+      const data = await productService.getAll(query, catId);
       setProducts(data);
     } catch (err) {
       setError(err.message);
-    }
-  };
-
-  // Open Product Modal
-  const handleOpenProductModal = (prod = null) => {
-    if (prod) {
-      setEditingProduct(prod);
-      setFormData({
-        name: prod.name || '',
-        sku: prod.sku || '',
-        barcode: prod.barcode || '',
-        description: prod.description || '',
-        categoryId: prod.category ? prod.category.id : '',
-        unitOfMeasure: prod.unitOfMeasure || 'Units',
-        costPrice: prod.costPrice != null ? prod.costPrice.toString() : '0.00',
-        salesPrice: prod.salesPrice != null ? prod.salesPrice.toString() : '0.00',
-        quantityOnHand: prod.quantityOnHand != null ? prod.quantityOnHand.toString() : '0',
-        reorderPoint: prod.reorderPoint != null ? prod.reorderPoint.toString() : '10'
-      });
-    } else {
-      setEditingProduct(null);
-      setFormData({
-        name: '',
-        sku: '',
-        barcode: '',
-        description: '',
-        categoryId: categories.length > 0 ? categories[0].id : '',
-        unitOfMeasure: 'Units',
-        costPrice: '0.00',
-        salesPrice: '0.00',
-        quantityOnHand: '0',
-        reorderPoint: '10'
-      });
-    }
-    setFormErrors({});
-    setProductModalOpen(true);
-  };
-
-  const handleProductSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name.trim()) {
-      setFormErrors({ name: 'Product name is required' });
-      return;
-    }
-    if (!formData.sku.trim()) {
-      setFormErrors({ sku: 'SKU is required' });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setFormErrors({});
-
-    const payload = {
-      ...formData,
-      costPrice: parseFloat(formData.costPrice) || 0,
-      salesPrice: parseFloat(formData.salesPrice) || 0,
-      quantityOnHand: parseInt(formData.quantityOnHand, 10) || 0,
-      reorderPoint: parseInt(formData.reorderPoint, 10) || 0,
-      categoryId: formData.categoryId ? parseInt(formData.categoryId, 10) : null
-    };
-
-    try {
-      if (editingProduct) {
-        await productService.update(editingProduct.id, payload);
-        setSuccessMsg('Product updated successfully!');
-      } else {
-        await productService.create(payload);
-        setSuccessMsg('Product created successfully!');
-      }
-      setProductModalOpen(false);
-      fetchInitialData();
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err) {
-      setFormErrors({ server: err.message || 'Operation failed' });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -171,7 +81,7 @@ export default function Products() {
 
     try {
       await productService.updateStock(selectedStockProduct.id, finalAdjustment);
-      setSuccessMsg(`Stock for ${selectedStockProduct.name} updated!`);
+      setSuccessMsg(`Stock for ${selectedStockProduct.name} updated successfully!`);
       setStockModalOpen(false);
       fetchInitialData();
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -180,10 +90,10 @@ export default function Products() {
     }
   };
 
-  const handleDeleteProduct = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+  const handleDeleteProduct = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete product "${name}"?`)) return;
     try {
-      await productService.delete(id);
+      await productService.deleteProduct(id);
       setSuccessMsg('Product deleted successfully');
       fetchInitialData();
       setTimeout(() => setSuccessMsg(''), 3000);
@@ -195,7 +105,6 @@ export default function Products() {
   // Filtered Products List
   const filteredProducts = products.filter((p) => {
     if (showLowStockOnly && !p.lowStock) return false;
-    if (selectedCategory && p.category?.id !== parseInt(selectedCategory, 10)) return false;
     return true;
   });
 
@@ -237,7 +146,7 @@ export default function Products() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => handleSearchAndFilter(e.target.value, selectedCategory)}
                 placeholder="Search products by name or SKU..."
                 className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
@@ -249,7 +158,7 @@ export default function Products() {
                 <Filter className="w-4 h-4 text-slate-400" />
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => handleSearchAndFilter(searchQuery, e.target.value)}
                   className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 >
                   <option value="">All Categories</option>
@@ -261,13 +170,13 @@ export default function Products() {
                 </select>
               </div>
 
-              <button
-                onClick={() => handleOpenProductModal()}
+              <Link
+                to="/products/new"
                 className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition-all ml-auto"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Product</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -302,7 +211,7 @@ export default function Products() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    <th className="py-3.5 px-6">SKU / Item</th>
+                    <th className="py-3.5 px-6">Product / SKU</th>
                     <th className="py-3.5 px-6">Category</th>
                     <th className="py-3.5 px-6">Stock Status</th>
                     <th className="py-3.5 px-6">Cost / Sales</th>
@@ -322,7 +231,12 @@ export default function Products() {
                               <Boxes className="w-4 h-4 text-indigo-600" />
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-900">{p.name}</p>
+                              <Link
+                                to={`/products/${p.id}`}
+                                className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors"
+                              >
+                                {p.name}
+                              </Link>
                               <p className="text-xs font-mono text-indigo-600 font-medium">SKU: {p.sku}</p>
                             </div>
                           </div>
@@ -362,6 +276,14 @@ export default function Products() {
                         </td>
 
                         <td className="py-4 px-6 text-right space-x-2">
+                          <Link
+                            to={`/products/${p.id}`}
+                            className="p-1.5 inline-block rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+
                           <button
                             onClick={() => {
                               setSelectedStockProduct(p);
@@ -375,16 +297,16 @@ export default function Products() {
                             <ArrowUpDown className="w-4 h-4" />
                           </button>
 
-                          <button
-                            onClick={() => handleOpenProductModal(p)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          <Link
+                            to={`/products/${p.id}/edit`}
+                            className="p-1.5 inline-block rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                             title="Edit Product"
                           >
                             <Pencil className="w-4 h-4" />
-                          </button>
+                          </Link>
 
                           <button
-                            onClick={() => handleDeleteProduct(p.id)}
+                            onClick={() => handleDeleteProduct(p.id, p.name)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                             title="Delete Product"
                           >
@@ -400,190 +322,6 @@ export default function Products() {
           )}
         </div>
       </div>
-
-      {/* CREATE / EDIT PRODUCT MODAL */}
-      {productModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-base font-bold text-slate-900">
-                {editingProduct ? 'Edit Product' : 'Add New Inventory Product'}
-              </h3>
-              <button onClick={() => setProductModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {formErrors.server && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
-                {formErrors.server}
-              </div>
-            )}
-
-            <form onSubmit={handleProductSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Product Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Enterprise 2D Barcode Scanner"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                  {formErrors.name && <p className="text-xs text-red-600 mt-1">{formErrors.name}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    SKU Code *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    placeholder="e.g. SCN-2D-001"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                  {formErrors.sku && <p className="text-xs text-red-600 mt-1">{formErrors.sku}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Barcode
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                    placeholder="e.g. 890123456701"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Unit of Measure
-                  </label>
-                  <select
-                    value={formData.unitOfMeasure}
-                    onChange={(e) => setFormData({ ...formData, unitOfMeasure: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  >
-                    <option value="Units">Units</option>
-                    <option value="Boxes">Boxes</option>
-                    <option value="Rolls">Rolls</option>
-                    <option value="Kg">Kg</option>
-                    <option value="Liters">Liters</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Cost Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.costPrice}
-                    onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Sales Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.salesPrice}
-                    onChange={(e) => setFormData({ ...formData, salesPrice: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Current Stock Quantity
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.quantityOnHand}
-                    onChange={(e) => setFormData({ ...formData, quantityOnHand: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Reorder Threshold Point
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.reorderPoint}
-                    onChange={(e) => setFormData({ ...formData, reorderPoint: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    rows="2"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Product specification or notes..."
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setProductModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md shadow-indigo-600/20"
-                >
-                  {isSubmitting ? 'Saving...' : editingProduct ? 'Update Product' : 'Create Product'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* QUICK STOCK ADJUSTMENT MODAL */}
       {stockModalOpen && selectedStockProduct && (

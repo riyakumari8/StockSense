@@ -22,11 +22,11 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductDto>> getAllProducts(@RequestParam(required = false) String search) {
-        if (search != null && !search.isBlank()) {
-            return ResponseEntity.ok(productService.searchProducts(search));
-        }
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<List<ProductDto>> getAllProducts(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long categoryId
+    ) {
+        return ResponseEntity.ok(productService.getAllProducts(search, categoryId));
     }
 
     @GetMapping("/{id}")
@@ -59,8 +59,8 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
     }
 }
