@@ -1,6 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 import {
   Boxes,
   LogOut,
@@ -12,7 +13,8 @@ import {
   ShieldCheck,
   Building2,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Truck
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -26,48 +28,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Top Navbar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-                <Boxes className="w-5 h-5" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">
-                Stock<span className="text-indigo-600">Sense</span>
-              </span>
-              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Enterprise v1.0
-              </span>
-            </div>
-
-            {/* User Profile & Actions */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 pr-4 border-r border-slate-200">
-                <div className="w-9 h-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-semibold text-sm">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <div className="hidden md:block text-left">
-                  <p className="text-sm font-semibold text-slate-800 leading-none">
-                    {user?.name || 'Authorized User'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">{user?.email || 'user@example.com'}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-3.5 py-2 border border-slate-300 shadow-sm text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-              >
-                <LogOut className="w-4 h-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -164,20 +125,24 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <Link
+            to="/deliveries"
+            className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-purple-300 hover:shadow-md transition-all group"
+          >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Outbound Deliveries</span>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider group-hover:text-purple-600 transition-colors">Outbound Deliveries</span>
+              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
                 <ArrowUpRight className="w-5 h-5" />
               </div>
             </div>
             <div>
               <p className="text-3xl font-extrabold text-slate-900">32</p>
-              <p className="text-xs text-purple-600 font-medium mt-2">
-                Dispatched today
+              <p className="text-xs text-purple-600 font-medium mt-2 flex items-center">
+                <span>Manage Delivery Orders</span>
+                <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
               </p>
             </div>
-          </div>
+          </Link>
         </div>
       </main>
 

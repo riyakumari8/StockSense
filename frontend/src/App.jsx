@@ -6,6 +6,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
+import DeliveryList from './pages/DeliveryList';
+import CreateDelivery from './pages/CreateDelivery';
+import DeliveryDetails from './pages/DeliveryDetails';
 
 export default function App() {
   return (
@@ -41,6 +44,30 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries"
+            element={
+              <ProtectedRoute>
+                <DeliveryList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries/create"
+            element={
+              <ProtectedRoute>
+                <CreateDelivery />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries/:id"
+            element={
+              <ProtectedRoute>
+                <DeliveryDetails />
               </ProtectedRoute>
             }
           />
