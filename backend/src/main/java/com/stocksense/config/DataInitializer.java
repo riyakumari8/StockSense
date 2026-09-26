@@ -19,15 +19,18 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final com.stocksense.repository.SupplierRepository supplierRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
                            CategoryRepository categoryRepository,
                            ProductRepository productRepository,
+                           com.stocksense.repository.SupplierRepository supplierRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
+        this.supplierRepository = supplierRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -76,6 +79,31 @@ public class DataInitializer implements CommandLineRunner {
             saveProduct("Stackable Plastic Storage Bins (Pack of 10)", "BIN-PLS-005", "890123456705", "Heavy-duty polypropylene stackable shelf storage bins", catPackaging, "Boxes", new BigDecimal("25.00"), new BigDecimal("45.00"), 240, 30);
             saveProduct("Anti-Static ESD Packing Foam Roll", "FMA-ESD-006", "890123456706", "100m roll of 5mm anti-static protective cushioning foam", catPackaging, "Rolls", new BigDecimal("35.00"), new BigDecimal("60.00"), 8, 15); // LOW STOCK
             saveProduct("Ergonomic Industrial Workstation Desk", "DSK-IND-007", "890123456707", "Height-adjustable ESD workstation with overhead LED light bar", catFurniture, "Units", new BigDecimal("550.00"), new BigDecimal("820.00"), 12, 4);
+        }
+
+        // 4. Seed Suppliers
+        if (supplierRepository.count() == 0) {
+            supplierRepository.save(new com.stocksense.entity.Supplier(
+                    "Apex Industrial Supplies",
+                    "John Davis",
+                    "+1 (555) 234-5678",
+                    "orders@apexindustrial.com",
+                    "742 Evergreen Terrace, Springfield, IL"
+            ));
+            supplierRepository.save(new com.stocksense.entity.Supplier(
+                    "Global Steel & Logistics Co.",
+                    "Sarah Chen",
+                    "+1 (555) 876-5432",
+                    "contact@globalsteel.com",
+                    "1200 Logistics Blvd, Chicago, IL"
+            ));
+            supplierRepository.save(new com.stocksense.entity.Supplier(
+                    "TechParts Manufacturing Ltd.",
+                    "Robert Miller",
+                    "+1 (555) 345-6789",
+                    "sales@techparts-mfg.com",
+                    "500 Silicon Way, San Jose, CA"
+            ));
         }
     }
 

@@ -10,6 +10,10 @@ import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
 import ProductForm from './pages/ProductForm';
 import Categories from './pages/Categories';
+import Receipts from './pages/Receipts';
+import ReceiptForm from './pages/ReceiptForm';
+import ReceiptDetails from './pages/ReceiptDetails';
+import Suppliers from './pages/Suppliers';
 
 export default function App() {
   return (
@@ -85,6 +89,46 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Categories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts"
+            element={
+              <ProtectedRoute>
+                <Receipts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts/new"
+            element={
+              <ProtectedRoute>
+                <ReceiptForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts/:id"
+            element={
+              <ProtectedRoute>
+                <ReceiptDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts/:id/edit"
+            element={
+              <ProtectedRoute>
+                <ReceiptForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/suppliers"
+            element={
+              <ProtectedRoute>
+                <Suppliers />
               </ProtectedRoute>
             }
           />

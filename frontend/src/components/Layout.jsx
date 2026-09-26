@@ -11,7 +11,9 @@ import {
   Menu,
   X,
   User as UserIcon,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  Building2
 } from 'lucide-react';
 
 export default function Layout({ children, pageTitle = 'Dashboard' }) {
@@ -25,10 +27,27 @@ export default function Layout({ children, pageTitle = 'Dashboard' }) {
     navigate('/login');
   };
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Products Catalog', path: '/products', icon: Package },
-    { name: 'Categories', path: '/categories', icon: FolderTree },
+  const navSections = [
+    {
+      title: 'Main Menu',
+      items: [
+        { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Products Catalog', path: '/products', icon: Package },
+        { name: 'Categories', path: '/categories', icon: FolderTree },
+      ]
+    },
+    {
+      title: 'Operations',
+      items: [
+        { name: 'Receipts', path: '/receipts', icon: FileText },
+      ]
+    },
+    {
+      title: 'Procurement',
+      items: [
+        { name: 'Suppliers', path: '/suppliers', icon: Building2 },
+      ]
+    }
   ];
 
   return (
@@ -70,31 +89,35 @@ export default function Layout({ children, pageTitle = 'Dashboard' }) {
           </div>
 
           {/* Navigation Links */}
-          <div className="px-4 py-6 space-y-1">
-            <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-              Main Menu
-            </p>
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`
-                    flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
-                    ${isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                      : 'hover:bg-slate-800/80 hover:text-white text-slate-400'
-                    }
-                  `}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+          <div className="px-4 py-4 space-y-5 overflow-y-auto max-h-[calc(100vh-14rem)]">
+            {navSections.map((section, sIdx) => (
+              <div key={sIdx} className="space-y-1">
+                <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                  {section.title}
+                </p>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`
+                        flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                        ${isActive
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                          : 'hover:bg-slate-800/80 hover:text-white text-slate-400'
+                        }
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
 
