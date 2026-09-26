@@ -1,0 +1,25 @@
+# Odoo & Python
+odoo/
+.venv/
+__pycache__/
+*.pyc
+*.log
+
+# Maven & Java Backend
+backend/target/
+target/
+*.class
+*.jar
+
+# Node & React Frontend
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# IDE & Config Secrets
+.env
+.env.local
+.vscode/
+.idea/
+*.iml
