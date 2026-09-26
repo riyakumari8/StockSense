@@ -1,8 +1,0 @@
-odoo/
-.venv/
-__pycache__/
-*.pyc
-*.log
-.env
-.vscode/
-.idea/
