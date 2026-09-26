@@ -10,6 +10,19 @@ import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
 import ProductForm from './pages/ProductForm';
 import Categories from './pages/Categories';
+import Suppliers from './pages/Suppliers';
+import Receipts from './pages/Receipts';
+import ReceiptForm from './pages/ReceiptForm';
+import ReceiptDetails from './pages/ReceiptDetails';
+import Deliveries from './pages/Deliveries';
+import DeliveryForm from './pages/DeliveryForm';
+import DeliveryDetails from './pages/DeliveryDetails';
+import Warehouses from './pages/Warehouses';
+import Transfers from './pages/Transfers';
+import TransferDetails from './pages/TransferDetails';
+import Adjustments from './pages/Adjustments';
+import AdjustmentDetails from './pages/AdjustmentDetails';
+import MoveHistory from './pages/MoveHistory';
 
 export default function App() {
   return (
@@ -85,6 +98,126 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Categories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/suppliers"
+            element={
+              <ProtectedRoute>
+                <Suppliers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts"
+            element={
+              <ProtectedRoute>
+                <Receipts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts/new"
+            element={
+              <ProtectedRoute>
+                <ReceiptForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/receipts/:id"
+            element={
+              <ProtectedRoute>
+                <ReceiptDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries"
+            element={
+              <ProtectedRoute>
+                <Deliveries />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries/create"
+            element={
+              <ProtectedRoute>
+                <DeliveryForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries/new"
+            element={
+              <ProtectedRoute>
+                <DeliveryForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/deliveries/:id"
+            element={
+              <ProtectedRoute>
+                <DeliveryDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/warehouses"
+            element={
+              <ProtectedRoute>
+                <Warehouses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/locations"
+            element={
+              <ProtectedRoute>
+                <Warehouses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transfers"
+            element={
+              <ProtectedRoute>
+                <Transfers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transfers/:id"
+            element={
+              <ProtectedRoute>
+                <TransferDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/adjustments"
+            element={
+              <ProtectedRoute>
+                <Adjustments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/adjustments/:id"
+            element={
+              <ProtectedRoute>
+                <AdjustmentDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/move-history"
+            element={
+              <ProtectedRoute>
+                <MoveHistory />
               </ProtectedRoute>
             }
           />

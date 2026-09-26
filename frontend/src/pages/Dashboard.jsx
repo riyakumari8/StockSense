@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
+import receiptService from '../services/receiptService';
+import deliveryService from '../services/deliveryService';
 import {
   Package,
   TrendingUp,
@@ -14,7 +16,10 @@ import {
   ArrowRight,
   Boxes,
   CheckCircle2,
-  Loader2
+  Loader2,
+  PackageCheck,
+  Users,
+  Truck
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -24,6 +29,8 @@ export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [pendingReceiptsCount, setPendingReceiptsCount] = useState(0);
+  const [pendingDeliveriesCount, setPendingDeliveriesCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,14 +40,21 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [prodsData, catsData, lowStockData] = await Promise.all([
+      const [prodsData, catsData, lowStockData, receiptsData, deliveriesData] = await Promise.all([
         productService.getAll(),
         categoryService.getAll(),
-        productService.getLowStock()
+        productService.getLowStock(),
+        receiptService.getAll({ status: 'DRAFT' }).catch(() => []),
+        deliveryService.getAll().catch(() => [])
       ]);
       setProducts(prodsData);
       setCategories(catsData);
       setLowStockProducts(lowStockData);
+      setPendingReceiptsCount(Array.isArray(receiptsData) ? receiptsData.length : 0);
+      const pendingDel = Array.isArray(deliveriesData)
+        ? deliveriesData.filter((d) => d.status !== 'VALIDATED' && d.status !== 'CANCELLED').length
+        : 0;
+      setPendingDeliveriesCount(pendingDel);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -74,75 +88,93 @@ export default function Dashboard() {
         </div>
 
         {/* Live Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Metric 1 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total SKUs</span>
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-                <Package className="w-5 h-5" />
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total SKUs</span>
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                <Package className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-slate-900">
-                {loading ? <Loader2 className="w-6 h-6 animate-spin text-indigo-600" /> : products.length}
+              <p className="text-2xl font-extrabold text-slate-900">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : products.length}
               </p>
-              <p className="text-xs text-slate-500 font-medium flex items-center mt-2">
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
                 Active catalog items
               </p>
             </div>
           </div>
 
           {/* Metric 2 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Low Stock Warnings</span>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-                <AlertTriangle className="w-5 h-5" />
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Low Stock</span>
+              <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-slate-900">
-                {loading ? <Loader2 className="w-6 h-6 animate-spin text-amber-600" /> : lowStockProducts.length}
+              <p className="text-2xl font-extrabold text-slate-900">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin text-amber-600" /> : lowStockProducts.length}
               </p>
-              <p className="text-xs text-amber-600 font-medium mt-2">
-                Requires reordering attention
+              <p className="text-[11px] text-amber-600 font-medium mt-1">
+                Requires reorder
               </p>
             </div>
           </div>
 
           {/* Metric 3 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Categories</span>
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-                <FolderTree className="w-5 h-5" />
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pending Receipts</span>
+              <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                <PackageCheck className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-slate-900">
-                {loading ? <Loader2 className="w-6 h-6 animate-spin text-blue-600" /> : categories.length}
+              <p className="text-2xl font-extrabold text-slate-900">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin text-blue-600" /> : pendingReceiptsCount}
               </p>
-              <p className="text-xs text-blue-600 font-medium mt-2">
-                Structured categories
-              </p>
+              <Link to="/receipts" className="text-[11px] text-blue-600 hover:underline font-semibold mt-1 inline-block">
+                Draft receipts →
+              </Link>
             </div>
           </div>
 
           {/* Metric 4 */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Inventory Valuation</span>
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                <DollarSign className="w-5 h-5" />
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pending Deliveries</span>
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                <Truck className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <p className="text-3xl font-extrabold text-slate-900">
-                {loading ? <Loader2 className="w-6 h-6 animate-spin text-emerald-600" /> : `$${totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              <p className="text-2xl font-extrabold text-slate-900">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : pendingDeliveriesCount}
               </p>
-              <p className="text-xs text-emerald-600 font-medium mt-2">
-                Based on cost prices
+              <Link to="/deliveries" className="text-[11px] text-indigo-600 hover:underline font-semibold mt-1 inline-block">
+                In-progress orders →
+              </Link>
+            </div>
+          </div>
+
+          {/* Metric 5 */}
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Valuation</span>
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <p className="text-xl font-extrabold text-slate-900 truncate">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin text-emerald-600" /> : `$${totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              </p>
+              <p className="text-[11px] text-emerald-600 font-medium mt-1">
+                At cost prices
               </p>
             </div>
           </div>

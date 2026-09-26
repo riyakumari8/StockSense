@@ -6,12 +6,16 @@ import {
   LayoutDashboard,
   Package,
   FolderTree,
-  AlertTriangle,
+  Users,
+  PackageCheck,
+  Truck,
+  Building2,
+  ArrowRightLeft,
+  Sliders,
+  History,
   LogOut,
   Menu,
-  X,
-  User as UserIcon,
-  ChevronRight
+  X
 } from 'lucide-react';
 
 export default function Layout({ children, pageTitle = 'Dashboard' }) {
@@ -29,6 +33,13 @@ export default function Layout({ children, pageTitle = 'Dashboard' }) {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Products Catalog', path: '/products', icon: Package },
     { name: 'Categories', path: '/categories', icon: FolderTree },
+    { name: 'Suppliers & Vendors', path: '/suppliers', icon: Users },
+    { name: 'Stock Receipts', path: '/receipts', icon: PackageCheck },
+    { name: 'Delivery Orders', path: '/deliveries', icon: Truck },
+    { name: 'Warehouses & Locations', path: '/warehouses', icon: Building2 },
+    { name: 'Internal Transfers', path: '/transfers', icon: ArrowRightLeft },
+    { name: 'Stock Adjustments', path: '/adjustments', icon: Sliders },
+    { name: 'Stock Move History', path: '/move-history', icon: History },
   ];
 
   return (
@@ -72,25 +83,25 @@ export default function Layout({ children, pageTitle = 'Dashboard' }) {
           {/* Navigation Links */}
           <div className="px-4 py-6 space-y-1">
             <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-              Main Menu
+              Inventory System
             </p>
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
-                    flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+                    flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150
                     ${isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-semibold'
                       : 'hover:bg-slate-800/80 hover:text-white text-slate-400'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                   <span>{item.name}</span>
                 </Link>
               );
@@ -101,7 +112,7 @@ export default function Layout({ children, pageTitle = 'Dashboard' }) {
         {/* User Account & Logout */}
         <div className="p-4 border-t border-slate-800">
           <div className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-slate-800/50 mb-3">
-            <div className="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-semibold text-sm">
+            <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-semibold text-xs">
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div className="flex-1 min-w-0">
@@ -131,7 +142,7 @@ export default function Layout({ children, pageTitle = 'Dashboard' }) {
           <div className="flex items-center space-x-3">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
               <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-              Live Database Connected
+              Live PostgreSQL Engine
             </span>
           </div>
         </header>
